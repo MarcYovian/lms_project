@@ -7,6 +7,22 @@ document.addEventListener('DOMContentLoaded', () => {
   AOS.init({
     duration: 800, // lama animasi (ms)
     once: true,    // animasi hanya sekali
+    
   })
 })
 
+setInterval(()=> {
+  fetch('/notif/count')
+    .then(r=>r.json())
+    .then(d=>{
+      const b = document.querySelector('#notif-badge');
+      if(b){ b.innerText = d.count; b.style.display = d.count>0 ? 'flex' : 'none'; }
+    });
+
+  fetch('/chat/count')
+    .then(r=>r.json())
+    .then(d=>{
+      const b = document.querySelector('#chat-badge');
+      if(b){ b.innerText = d.count; b.style.display = d.count>0 ? 'flex' : 'none'; }
+    });
+}, 3000);

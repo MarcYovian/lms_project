@@ -8,6 +8,16 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    public function anak()
+{
+    return $this->hasMany(User::class, 'parent_id');
+}
+
+public function orangTua()
+{
+    return $this->belongsTo(User::class, 'parent_id');
+}
+
     use HasFactory, Notifiable;
 
     protected $fillable = [
@@ -22,3 +32,5 @@ class User extends Authenticatable
         'remember_token',
     ];
 }
+
+

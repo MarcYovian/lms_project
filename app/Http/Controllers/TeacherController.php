@@ -9,13 +9,8 @@ class TeacherController extends Controller
 {
     public function index()
     {
-        $teachers = Teacher::all();
-        return view('teachers.index', compact('teachers'));
-    }
-
-    public function create()
-    {
-        return view('teachers.create');
+        $teachers = Teacher::latest()->paginate(10);
+        return view('pages.guru.index', compact('teachers'));
     }
 
     public function store(Request $request)
@@ -27,29 +22,26 @@ class TeacherController extends Controller
         ]);
 
         Teacher::create($request->all());
-        return redirect()->route('teachers.index')->with('success', 'Data guru berhasil ditambahkan.');
+        return back()->with('success', 'Data guru berhasil ditambahkan.');
     }
 
-    public function edit(Teacher $teacher)
+    public function update(Request $request, $id)
     {
-        return view('teachers.edit', compact('teacher'));
-    }
+        $teacher = Teacher::findOrFail($id);
 
-    public function update(Request $request, Teacher $teacher)
-    {
         $request->validate([
             'nama' => 'required',
-            'nip' => 'required|unique:teachers,nip,' . $teacher->id,
+            'nip' => "required|unique:teachers,nip,$id",
             'mapel' => 'required',
         ]);
 
         $teacher->update($request->all());
-        return redirect()->route('teachers.index')->with('success', 'Data guru berhasil diperbarui.');
+        return back()->with('success', 'Data guru berhasil diperbarui.');
     }
 
-    public function destroy(Teacher $teacher)
+    public function destroy($id)
     {
-        $teacher->delete();
-        return redirect()->route('teachers.index')->with('success', 'Data guru berhasil dihapus.');
+        Teacher::findOrFail($id)->delete();
+        return back()->with('success', 'Data guru berhasil dihapus.');
     }
 }

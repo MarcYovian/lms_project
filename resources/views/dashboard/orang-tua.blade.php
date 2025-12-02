@@ -1,17 +1,38 @@
 @extends('layouts.dashboard')
-@section('title','Dashboard Orang Tua')
-@section('header','Dashboard Orang Tua')
 
 @section('content')
+<div class="p-6">
+    <h1 class="text-2xl font-semibold mb-4">Dashboard Orang Tua</h1>
 
-<h1 class="text-2xl font-bold text-blue-700">Dashboard Orang Tua</h1>
-<p class="text-gray-600 mt-2">Pantau perkembangan anak Anda di sini.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-<div class="bg-white p-6 rounded-xl shadow text-center">
-  <h2 class="text-xl font-semibold mb-3">Progress Belajar Anak</h2>
-  <div class="w-full bg-gray-200 rounded-full h-6">
-    <div class="bg-blue-600 h-6 rounded-full" style="width: {{ $progressAnak }}%"></div>
-  </div>
-  <p class="mt-3 font-bold text-blue-600">{{ $progressAnak }}%</p>
+        {{-- Profil Anak --}}
+        <div class="bg-white shadow rounded-xl p-6 flex items-center space-x-4">
+            @include('components.icons.profil')
+            <div>
+                <h2 class="font-bold text-xl">Ananda</h2>
+                <p class="text-gray-500">Lihat Profil</p>
+            </div>
+        </div>
+
+        {{-- Nilai Anak --}}
+        <div class="bg-white shadow rounded-xl p-6 flex items-center space-x-4">
+            @include('components.icons.nilai')
+            <div>
+                <h2 class="font-bold text-xl">88%</h2>
+                <p class="text-gray-500">Rata-rata Nilai</p>
+            </div>
+        </div>
+
+        {{-- Pesan dari Guru --}}
+        <div class="bg-white shadow rounded-xl p-6 flex items-center space-x-4">
+            @include('components.icons.pesan')
+            <div>
+                <h2 class="font-bold text-xl">3</h2>
+                <p class="text-gray-500">Pesan Baru</p>
+            </div>
+        </div>
+
+    </div>
 </div>
 @endsection

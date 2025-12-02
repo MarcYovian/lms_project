@@ -1,29 +1,56 @@
 @extends('layouts.app')
 
-@section('title', 'Login Dinas')
+@section('title', 'Login - ' . ucfirst($role))
 
 @section('content')
-<div class="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-100 to-blue-200">
-  <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-    <h2 class="text-2xl font-bold text-center text-blue-700 mb-6">Login Dinas Pendidikan</h2>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold text-center text-blue-700 mb-6">
+            Login Sebagai {{ ucfirst(str_replace('-', ' ', $role)) }}
+        </h2>
 
-   <form action="{{ route('login.submit') }}" method="POST">
-  @csrf
-  <div class="mb-4">
-    <label class="block text-gray-700 font-semibold mb-1">Email</label>
-    <input name="email" type="email" class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-  </div>
+        <form method="POST" action="{{ route('login.submit') }}" class="space-y-4">
+            @csrf
 
-  <div class="mb-4">
-    <label class="block text-gray-700 font-semibold mb-1">Password</label>
-    <input name="password" type="password" class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-  </div>
+            {{-- ROLE --}}
+            <input type="hidden" name="role" value="{{ str_replace('-', '_', $role) }}">
 
-  <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">Masuk</button>
-</form>
+            {{-- EMAIL --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Email</label>
+                <input 
+                    type="email" 
+                    name="email" 
+                    class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500" 
+                    required
+                >
+            </div>
 
+            {{-- PASSWORD (Sudah diperbaiki) --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Password</label>
+                <input 
+                    type="password" 
+                    name="password" 
+                    minlength="6"
+                    class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    required
+                >
+            </div>
 
-    <p class="text-center text-gray-600 text-sm mt-4">© 2025 LearnFlux LMS</p>
-  </div>
+            {{-- SUBMIT --}}
+            <button 
+                type="submit" 
+                class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+                Masuk
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="{{ route('home') }}" class="text-sm text-blue-600 hover:underline">
+                ← Kembali ke Beranda
+            </a>
+        </div>
+    </div>
 </div>
 @endsection
