@@ -9,7 +9,19 @@
 
     <div>
         <label>Judul Tugas</label>
-        <input name="judul" class="w-full border p-2 rounded">
+        <input name="judul" class="w-full border p-2 rounded" required>
+    </div>
+
+    <div>
+        <label>Mata Pelajaran & Kelas</label>
+        <select name="course_id" class="w-full border p-2 rounded" required>
+            <option value="">-- Pilih --</option>
+            @foreach($courses as $course)
+                <option value="{{ $course->id }}">
+                    {{ $course->subject->name }} - {{ $course->classroom->name }} ({{ $course->classroom->school->name ?? '' }})
+                </option>
+            @endforeach
+        </select>
     </div>
 
     <div>
@@ -18,13 +30,9 @@
     </div>
 
     <div>
-        <label>Kelas</label>
-        <input name="kelas" class="w-full border p-2 rounded">
-    </div>
-
-    <div>
         <label>Deadline</label>
-        <input type="date" name="deadline" class="w-full border p-2 rounded">
+        {{-- Use datetime-local for accurate deadline --}}
+        <input type="datetime-local" name="deadline" class="w-full border p-2 rounded" required>
     </div>
 
     <button class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>

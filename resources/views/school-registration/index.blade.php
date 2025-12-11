@@ -5,7 +5,7 @@
 @section('content')
 <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-linear-to-br from-blue-50 to-indigo-50" 
      x-data="{ 
-         step: {{ $errors->any() ? ($errors->hasAny(['npsn', 'school_name', 'education_level', 'ownership_status', 'address', 'district', 'village']) ? 2 : ($errors->hasAny(['verification_doc', 'logo']) ? 3 : 1)) : 1 }},
+         step: {{ $errors->any() ? ($errors->hasAny(['name', 'email', 'phone_number', 'password']) ? 1 : ($errors->hasAny(['npsn', 'school_name', 'education_level', 'ownership_status', 'address', 'district', 'village']) ? 2 : 3)) : 1 }},
          fileName: '',
          logoName: '',
          nextStep() { if(this.step < 3) this.step++ },
@@ -36,6 +36,28 @@
                         <p class="text-sm font-medium text-green-800">
                             {{ session('success') }}
                         </p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="rounded-md bg-red-50 p-4 border-l-4 border-red-400 mb-6">
+                <div class="flex">
+                    <div class="shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">
+                            Terdapat kesalahan pada pengisian formulir. Silakan periksa kembali data Anda.
+                        </p>
+                        @if ($errors->has('form_error'))
+                            <p class="mt-1 text-sm text-red-700">
+                                {{ $errors->first('form_error') }}
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>

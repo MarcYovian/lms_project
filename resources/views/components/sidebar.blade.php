@@ -225,6 +225,14 @@
                 Pengajaran
             </div>
             
+            <a href="{{ route('teacher.courses.index') }}" 
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['teacher.courses.*']) }}">
+                <div class="w-5 h-5 transition-transform group-hover:scale-110">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <span class="font-medium">Kelas Saya</span>
+            </a>
+            
             <a href="{{ route('academic.calendar.index') }}" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive('academic.calendar.*') }}">
                 <div class="w-5 h-5 transition-transform group-hover:scale-110">
@@ -239,14 +247,6 @@
                     @include('components.icons.jadwal')
                 </div>
                 <span class="font-medium">Jadwal Mengajar</span>
-            </a>
-
-            <a href="{{ route('tugas.index') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['tugas.*', 'assignments.*']) }}">
-                <div class="w-5 h-5 transition-transform group-hover:scale-110">
-                    @include('components.icons.file-upload')
-                </div>
-                <span class="font-medium">Tugas & Materi</span>
             </a>
 
             <a href="{{ route('nilai.index') }}" 

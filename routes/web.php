@@ -66,12 +66,12 @@ Route::middleware(['auth'])->group(function () {
 // =====================================================================
 // DASHBOARD GATEWAY
 // =====================================================================
-Route::middleware(['auth'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+Route::middleware(['auth', 'verified'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
 // =====================================================================
 // DASHBOARD BY ROLE
 // =====================================================================
-Route::middleware(['auth', 'role:dinas'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:dinas'])->group(function () {
     Route::get('/dashboard/dinas', [DinasController::class, 'index'])->name('dashboard.dinas');
     
     // School Reports Management
@@ -80,7 +80,7 @@ Route::middleware(['auth', 'role:dinas'])->group(function () {
     Route::get('/dinas/reports/{id}', [DinasReportController::class, 'show'])->name('dinas.reports.show');
     Route::post('/dinas/reports/{id}/review', [DinasReportController::class, 'review'])->name('dinas.reports.review'); // For feedback/status update
 });
-Route::middleware(['auth', 'role:admin_dinas'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin_dinas'])->group(function () {
     Route::get('/dashboard/dinas-admin', [DinasAdminController::class, 'index'])->name('dashboard.dinas.admin');
     
     // School Management
@@ -93,11 +93,26 @@ Route::middleware(['auth', 'role:admin_dinas'])->group(function () {
     Route::post('/dinas/schools/{id}/activate', [DinasSchoolController::class, 'activate'])->name('dinas.schools.activate');
     Route::post('/dinas/schools/{id}/reset-password', [DinasSchoolController::class, 'resetPassword'])->name('dinas.schools.reset-password');
 });
-Route::middleware(['auth', 'role:kepala_sekolah'])->get('/dashboard/headmaster', [HeadmasterController::class, 'index'])->name('dashboard.headmaster');
-Route::middleware(['auth', 'role:admin_sekolah'])->get('/dashboard/school-admin', [SchoolAdminController::class, 'index'])->name('dashboard.school.admin');
-Route::middleware(['auth', 'role:guru'])->get('/dashboard/teacher', [DashboardTeacherController::class, 'index'])->name('dashboard.teacher');
-Route::middleware(['auth', 'role:siswa'])->get('/dashboard/student', [StudentController::class, 'index'])->name('dashboard.student');
-Route::middleware(['auth', 'role:orang_tua'])->get('/dashboard/parent', [ParentController::class, 'index'])->name('dashboard.parent');
+Route::middleware(['auth', 'verified', 'role:kepala_sekolah'])->get('/dashboard/headmaster', [HeadmasterController::class, 'index'])->name('dashboard.headmaster');
+Route::middleware(['auth', 'verified', 'role:admin_sekolah'])->get('/dashboard/school-admin', [SchoolAdminController::class, 'index'])->name('dashboard.school.admin');
+Route::middleware(['auth', 'verified', 'role:guru'])->group(function () {
+    Route::get('/dashboard/teacher', [DashboardTeacherController::class, 'index'])->name('dashboard.teacher');
+    Route::get('/teacher/courses', [DashboardTeacherController::class, 'myCourses'])->name('teacher.courses.index');
+    
+    // Course Details & management
+    Route::get('/teacher/courses/{id}', [DashboardTeacherController::class, 'show'])->name('teacher.courses.show');
+    Route::post('/teacher/courses/{id}/materials', [DashboardTeacherController::class, 'storeMaterial'])->name('teacher.courses.materials.store');
+    Route::put('/teacher/materials/{id}', [DashboardTeacherController::class, 'updateMaterial'])->name('teacher.materials.update'); // Added Update Route
+    Route::delete('/teacher/materials/{id}', [DashboardTeacherController::class, 'destroyMaterial'])->name('teacher.materials.destroy');
+    
+    Route::post('/teacher/courses/{id}/assignments', [DashboardTeacherController::class, 'storeAssignment'])->name('teacher.courses.assignments.store');
+    Route::put('/teacher/assignments/{id}', [DashboardTeacherController::class, 'updateAssignment'])->name('teacher.assignments.update'); // Added Update Route
+    Route::post('/teacher/courses/{id}/attendance', [DashboardTeacherController::class, 'storeAttendance'])->name('teacher.courses.attendance.store');
+    Route::get('/teacher/courses/{id}/attendance/{date}', [DashboardTeacherController::class, 'getAttendanceByDate'])->name('teacher.courses.attendance.show');
+
+});
+Route::middleware(['auth', 'verified', 'role:siswa'])->get('/dashboard/student', [StudentController::class, 'index'])->name('dashboard.student');
+Route::middleware(['auth', 'verified', 'role:orang_tua'])->get('/dashboard/parent', [ParentController::class, 'index'])->name('dashboard.parent');
 
 // =====================================================================
 // CRUD SISWA
@@ -109,7 +124,7 @@ Route::middleware(['auth', 'role:orang_tua'])->get('/dashboard/parent', [ParentC
 // =====================================================================
 // MASTER DATA (ADMIN SEKOLAH)
 // =====================================================================
-Route::middleware(['auth', 'role:admin_sekolah'])->prefix('master')->name('master.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin_sekolah'])->prefix('master')->name('master.')->group(function () {
     // Academic Years
     Route::resource('academic-years', AcademicYearController::class);
     Route::post('academic-years/{id}/toggle', [AcademicYearController::class, 'toggleActive'])->name('academic-years.toggle');
@@ -148,7 +163,7 @@ Route::middleware(['auth', 'role:admin_sekolah'])->prefix('master')->name('maste
 // =====================================================================
 // ACADEMIC & CURRICULUM
 // =====================================================================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     // Academic Calendar
     Route::get('/academic/calendar', [SchoolEventController::class, 'index'])->name('academic.calendar.index');
     Route::get('/academic/calendar/events', [SchoolEventController::class, 'getEvents'])->name('academic.calendar.events');
@@ -168,8 +183,11 @@ Route::middleware(['auth'])->group(function () {
 // =====================================================================
 // JADWAL
 // =====================================================================
-Route::middleware(['auth', 'role:guru,kepala_sekolah,admin_sekolah'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:guru,kepala_sekolah,admin_sekolah'])->group(function () {
     Route::get('/jadwal', [ScheduleController::class, 'index'])->name('jadwal.index');
+});
+
+Route::middleware(['auth', 'verified', 'role:kepala_sekolah,admin_sekolah'])->group(function () {
     Route::post('/jadwal', [ScheduleController::class, 'store'])->name('jadwal.store');
     Route::post('/jadwal/{id}', [ScheduleController::class, 'update'])->name('jadwal.update');
     Route::delete('/jadwal/{id}', [ScheduleController::class, 'destroy'])->name('jadwal.delete');
@@ -178,15 +196,15 @@ Route::middleware(['auth', 'role:guru,kepala_sekolah,admin_sekolah'])->group(fun
 // =====================================================================
 // NILAI + RAPOR
 // =====================================================================
-Route::middleware(['auth', 'role:guru'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:guru'])->group(function () {
     Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai.index');
     Route::post('/nilai', [NilaiController::class, 'store'])->name('nilai.store');
 });
 
-Route::middleware(['auth', 'role:siswa'])->get('/nilai-saya', [NilaiController::class, 'siswaNilai'])->name('nilai.siswa');
+Route::middleware(['auth', 'verified', 'role:siswa'])->get('/nilai-saya', [NilaiController::class, 'siswaNilai'])->name('nilai.siswa');
 
 // Rapor Semester
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/rapor', [RaporController::class, 'index'])->name('rapor.index');
     Route::post('/rapor/store', [RaporController::class, 'store'])->name('rapor.store');
     Route::get('/rapor/siswa/{id}', [RaporController::class, 'show'])->name('rapor.siswa');
@@ -198,9 +216,11 @@ Route::get('/rapor/pdf/{id}', [RaporPdfController::class, 'generate'])
 // =====================================================================
 // FILE: Tugas & Pengumpulan
 // =====================================================================
-Route::middleware('auth')->group(function () {
-    Route::get('/tugas', [TugasController::class, 'index'])->name('tugas.index');
-    Route::post('/tugas/store', [TugasController::class, 'store'])->name('tugas.store');
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Route::get('/tugas', [TugasController::class, 'index'])->name('tugas.index'); // Moved to Teacher Course
+    // Route::get('/tugas/create', [TugasController::class, 'create'])->name('tugas.create'); // Moved to Modal
+    // Route::post('/tugas/store', [TugasController::class, 'store'])->name('tugas.store'); // Replaced by TeacherController
+    Route::get('/tugas/{id}', [TugasController::class, 'show'])->name('tugas.show');
     Route::post('/tugas/{id}/upload', [PengumpulanController::class, 'upload'])->name('tugas.upload');
     Route::post('/pengumpulan/{id}/nilai', [PengumpulanController::class, 'nilai'])->name('pengumpulan.nilai');
 });
@@ -208,15 +228,16 @@ Route::middleware('auth')->group(function () {
 // =====================================================================
 // ABSENSI
 // =====================================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/absensi', [AbsensiController::class, 'index'])->name('absensi.index');
+    Route::get('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
     Route::post('/absensi/store', [AbsensiController::class, 'store'])->name('absensi.store');
 });
 
 // =====================================================================
 // PENGUMUMAN
 // =====================================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('pengumuman.index');
     Route::post('/pengumuman', [PengumumanController::class, 'store'])->name('pengumuman.store');
 });
@@ -224,7 +245,7 @@ Route::middleware('auth')->group(function () {
 // =====================================================================
 // FORUM
 // =====================================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/forum', [ForumController::class, 'index'])->name('forum.index');
     Route::post('/forum/store', [ForumController::class, 'store'])->name('forum.store');
 });
@@ -232,20 +253,20 @@ Route::middleware('auth')->group(function () {
 // =====================================================================
 // PARENT MODE & SUPERADMIN
 // =====================================================================
-Route::middleware('auth')->get('/parent/dashboard', [ParentController::class, 'dashboard'])->name('parent.dashboard');
-Route::middleware('auth')->get('/superadmin/dashboard', [SuperadminController::class, 'index'])->name('superadmin.dashboard');
+Route::middleware(['auth', 'verified'])->get('/parent/dashboard', [ParentController::class, 'dashboard'])->name('parent.dashboard');
+Route::middleware(['auth', 'verified'])->get('/superadmin/dashboard', [SuperadminController::class, 'index'])->name('superadmin.dashboard');
 
 // =====================================================================
 // NILAI GURU – Rekap Nilai
 // =====================================================================
-Route::middleware(['auth', 'role:guru'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:guru'])->group(function () {
     Route::get('/guru/nilai', [ReportController::class, 'guruIndex'])->name('guru.nilai');
 });
 
 // =====================================================================
 // CHAT SYSTEM (FINAL — TANPA BENTROK, TANPA MENGGANGGU ROUTE LAIN)
 // =====================================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
     // Halaman daftar kontak chat
     Route::get('/chat', [ChatController::class, 'contacts'])->name('chat.index');
@@ -267,7 +288,7 @@ Route::middleware('auth')->group(function () {
 
 });
 
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+
 
 // =====================================================================
 // NOTIFIKASI (Fix Error notif.index)
@@ -276,7 +297,7 @@ Route::middleware('auth')->get('/notifikasi', function () {
     return view('notifikasi.index'); // nanti kamu buat view ini
 })->name('notif.index');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
 });
 
