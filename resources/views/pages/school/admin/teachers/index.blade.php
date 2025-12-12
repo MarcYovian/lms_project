@@ -53,9 +53,9 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                    {{ substr($teacher->nama, 0, 1) }}
+                                    {{ substr($teacher->user->name, 0, 1) }}
                                 </div>
-                                <span class="font-medium text-gray-900">{{ $teacher->nama }}</span>
+                                <span class="font-medium text-gray-900">{{ $teacher->user->name }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4">

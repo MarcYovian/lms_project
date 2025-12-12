@@ -8,11 +8,13 @@
     <div class="bg-white p-6 rounded-xl shadow-md h-fit">
         <h3 class="font-bold mb-4">Filter & Tools</h3>
         
+        @if(auth()->user()->role !== \App\Enums\UserRole::GURU)
         <div class="mb-4">
              <a href="{{ route('academic.time-settings.index') }}" class="text-blue-600 text-sm hover:underline">
                  Atur Jam Pelajaran (Bell Schedule)
              </a>
         </div>
+        @endif
 
         <div class="mb-4">
             <label class="block text-sm font-bold mb-2">Tahun Akademik</label>
@@ -35,6 +37,7 @@
             </select>
         </div>
 
+        @if(auth()->user()->role !== \App\Enums\UserRole::GURU)
         <div class="mb-4">
             <label class="block text-sm font-bold mb-2">Guru</label>
             <select x-model="filters.teacher_id" @change="refetch" class="w-full border rounded px-3 py-2">
@@ -44,12 +47,17 @@
                 @endforeach
             </select>
         </div>
+        @else
+            <input type="hidden" x-model="filters.teacher_id" x-init="filters.teacher_id = '{{ auth()->user()->teacher->id ?? '' }}'">
+        @endif
 
         <hr class="my-4">
         
+        @if(auth()->user()->role !== \App\Enums\UserRole::GURU)
         <button @click="openModal('create')" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
             + Tambah Jadwal
         </button>
+        @endif
     </div>
 
     <!-- Calendar Area -->
@@ -110,7 +118,10 @@
                     </div>
                 </div>
                 <div x-show="activePeriods.length === 0" class="mb-4 text-red-500 text-sm">
-                    Belum ada pengaturan jam pelajaran untuk hari ini. <a href="{{ route('academic.time-settings.index') }}" class="underline">Atur Sekarang</a>
+                    Belum ada pengaturan jam pelajaran untuk hari ini. 
+                    @if(auth()->user()->role !== \App\Enums\UserRole::GURU)
+                    <a href="{{ route('academic.time-settings.index') }}" class="underline">Atur Sekarang</a>
+                    @endif
                 </div>
 
                 <div class="flex justify-end gap-2">
@@ -152,10 +163,11 @@
     function scheduleManager() {
         return {
             calendar: null,
+            isTeacher: {{ auth()->user()->role === \App\Enums\UserRole::GURU ? 'true' : 'false' }},
             filters: {
                 academic_year_id: '{{ \App\Models\AcademicYear::where("is_active", true)->value("id") }}',
                 classroom_id: '',
-                teacher_id: ''
+                teacher_id: '{{ auth()->user()->role === \App\Enums\UserRole::GURU ? (auth()->user()->teacher->id ?? "") : "" }}'
             },
             mode: 'create',
             scheduleId: null,
@@ -205,8 +217,10 @@
                             };
                         }
                     },
-                    editable: true,
+                    // Disable dragging/resizing if teacher
+                    editable: !this.isTeacher,
                     eventDrop: (info) => {
+                        if(this.isTeacher) { info.revert(); return; }
                         this.openConfirmModal(
                             'Konfirmasi Pindah Jadwal', 
                             'Apakah Anda yakin ingin memindahkan jadwal ini?', 
@@ -215,6 +229,8 @@
                         );
                     },
                     eventClick: (info) => {
+                        if (this.isTeacher) return; // Prevent any click action for teachers
+
                         if (info.jsEvent.type === 'click') {
                             if (info.event.extendedProps.type === 'empty') {
                                 // Clicked on an empty slot -> Open Create Modal Pre-filled
@@ -263,6 +279,7 @@
             },
 
             async openModal(mode, event = null, prefill = null) {
+                if(this.isTeacher) return;
                 this.mode = mode;
                 if (mode === 'create') {
                     // Default values

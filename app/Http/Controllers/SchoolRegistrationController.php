@@ -22,6 +22,41 @@ class SchoolRegistrationController extends Controller
 
     public function store(Request $request)
     {
+        $messages = [
+            'required' => ':Attribute wajib diisi.',
+            'string' => ':Attribute harus berupa teks.',
+            'email' => ':Attribute harus berupa alamat email yang valid.',
+            'unique' => ':Attribute sudah terdaftar dalam sistem.',
+            'numeric' => ':Attribute harus berupa angka.',
+            'digits' => ':Attribute harus terdiri dari :digits digit.',
+            'min' => ':Attribute minimal :min karakter.',
+            'max' => [
+                'numeric' => ':Attribute maksimal :max.',
+                'file' => 'Ukuran :attribute maksimal :max kilobyte.',
+                'string' => ':Attribute maksimal :max karakter.',
+            ],
+            'confirmed' => 'Konfirmasi password tidak sesuai.',
+            'in' => 'Pilihan :attribute tidak valid.',
+            'mimes' => ':Attribute harus berupa file bertipe: :values.',
+            'image' => ':Attribute harus berupa gambar.',
+        ];
+
+        $attributes = [
+            'npsn' => 'NPSN',
+            'school_name' => 'Nama Sekolah',
+            'education_level' => 'Jenjang Pendidikan',
+            'ownership_status' => 'Status Kepemilikan',
+            'address' => 'Alamat',
+            'district' => 'Kecamatan',
+            'village' => 'Kelurahan',
+            'verification_doc' => 'Dokumen Verifikasi',
+            'logo' => 'Logo Sekolah',
+            'name' => 'Nama Operator',
+            'email' => 'Email',
+            'phone_number' => 'Nomor WhatsApp',
+            'password' => 'Password',
+        ];
+
         $validated = $request->validate([
             // Data Sekolah
             'npsn' => 'required|numeric|digits:8|unique:schools,npsn', // Pastikan 8 digit
@@ -39,45 +74,50 @@ class SchoolRegistrationController extends Controller
             'email' => 'required|email|unique:users,email',
             'phone_number' => 'required|string|min:10|max:14', // Tambahan sesuai diskusi
             'password' => 'required|string|min:8|confirmed',
-        ]);
+        ], $messages, $attributes);
 
-        
-        [$user, $school] = DB::transaction(function () use ($validated, $request) {
-            $folderPath = 'schools/' . $validated['npsn'];
-            
-            $docPath = $request->file('verification_doc')->store($folderPath . '/documents', 'public');
-            $logoPath = $request->file('logo')->store($folderPath . '/logos', 'public');
-            
-            $school = School::create([
-                'npsn'=> $validated['npsn'],
-                'name'=> $validated['school_name'],
-                'education_level' => $validated['education_level'],
-                'ownership_status' => $validated['ownership_status'],
-                'address' => $validated['address'],
-                'district'=> $validated['district'],
-                'village'=> $validated['village'],
-                'verification_doc'=> $docPath,
-                'logo' => $logoPath,
-                'status' => SchoolStatus::PENDING
-            ]);
+        try {
+            DB::transaction(function () use ($validated, $request) {
+                $folderPath = 'schools/' . $validated['npsn'];
+                
+                $docPath = $request->file('verification_doc')->store($folderPath . '/documents', 'public');
+                $logoPath = $request->file('logo')->store($folderPath . '/logos', 'public');
+                
+                $school = School::create([
+                    'npsn'=> $validated['npsn'],
+                    'name'=> $validated['school_name'],
+                    'education_level' => $validated['education_level'],
+                    'ownership_status' => $validated['ownership_status'],
+                    'address' => $validated['address'],
+                    'district'=> $validated['district'],
+                    'village'=> $validated['village'],
+                    'verification_doc'=> $docPath,
+                    'logo' => $logoPath,
+                    'status' => SchoolStatus::PENDING
+                ]);
 
-            $user = User::create([
-                'name'=> $validated['name'],
-                'email' => $validated['email'],
-                'phone_number' => $validated['phone_number'],
-                'password' => Hash::make($validated['password']),
-                'role' => UserRole::ADMIN_SEKOLAH,
-                'school_id' => $school->id,
-            ]);
+                $user = User::create([
+                    'name'=> $validated['name'],
+                    'email' => $validated['email'],
+                    'phone_number' => $validated['phone_number'],
+                    'password' => Hash::make($validated['password']),
+                    'role' => UserRole::ADMIN_SEKOLAH,
+                    'school_id' => $school->id,
+                ]);
 
-            return [$user, $school];
-        });
+                event(new Registered($user));
+                
+                // Dispatch event for sending notification email to Admin Dinas (Queued)
+                NewSchoolRegistered::dispatch($school);
+            });
 
-        event(new Registered($user));
-        
-        // Dispatch event for sending notification email to Admin Dinas (Queued)
-        NewSchoolRegistered::dispatch($school);
+            return redirect()->route('school.register')->with('success', 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi akun sebelum kami memproses pendaftaran.');
 
-        return redirect()->route('school.register')->with('success', 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi akun sebelum kami memproses pendaftaran.');
+        } catch (\Exception $e) {
+            // Log error jika diperlukan: \Log::error($e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['form_error' => 'Terjadi kesalahan saat memproses pendaftaran: ' . $e->getMessage()]);
+        }
     }
 }
